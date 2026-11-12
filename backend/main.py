@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from urllib.parse import quote
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -51,6 +51,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def require_admin(
+    x_admin_key: str | None = Header(default=None, alias="X-Admin-Key")
+):
+    admin_key = os.getenv("ADMIN_API_KEY", "")
+
+    if not admin_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin authentication is not configured."
+        )
+
+    if not x_admin_key or not secrets.compare_digest(x_admin_key, admin_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Admin authentication required."
+        )
 
 
 # --------------------------------------------------
@@ -201,7 +218,9 @@ def create_grievance(grievance: GrievanceCreate):
 # --------------------------------------------------
 
 @app.get("/api/grievances")
-def list_grievances():
+def list_grievances(
+    _: None = Depends(require_admin)
+):
 
     result = supabase_request(
         "GET",
@@ -247,6 +266,7 @@ def track_grievance(reference_id: str):
 def update_grievance_status(
     reference_id: str,
     update: GrievanceStatusUpdate,
+    _: None = Depends(require_admin),
 ):
 
     allowed_statuses = {
