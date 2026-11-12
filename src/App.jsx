@@ -15,6 +15,8 @@ const departments = [
 ];
 
 function App() {
+  const [adminKey, setAdminKey] = useState("");
+  const [adminKeyInput, setAdminKeyInput] = useState("");
   const [page, setPage] = useState("Home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [reference, setReference] = useState("");
@@ -30,12 +32,18 @@ function App() {
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState("");
 
-  async function loadGrievances() {
+  
+  async function loadGrievances(key = adminKey) {
     setDashboardLoading(true);
     setDashboardError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/grievances");
+      const response = await fetch("http://127.0.0.1:8000/api/grievances", {
+        headers: {
+          "X-Admin-Key": key,
+        },
+      });
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -54,6 +62,7 @@ function App() {
     }
   }
 
+
   async function changeGrievanceStatus(referenceId, status) {
     setDashboardError("");
 
@@ -62,7 +71,10 @@ function App() {
         `http://127.0.0.1:8000/api/grievances/${encodeURIComponent(referenceId)}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Key": adminKey,
+          },
           body: JSON.stringify({ status }),
         }
       );
@@ -228,6 +240,41 @@ function App() {
               <span className="eyebrow dark">JANASEVANA · ADMIN DEMO</span>
               <h1>Grievance Dashboard</h1>
               <p>View submitted grievances and update their current status.</p>
+              
+              
+              <div className="info-card" style={{ marginBottom: "24px" }}>
+                <h3>Administrator access</h3>
+                <p>Enter the admin key to load and manage grievance records.</p>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setAdminKey(adminKeyInput);
+                    setGrievances([]);
+                    await loadGrievances(adminKeyInput);
+                  }}
+                >
+                  <input
+                    type="password"
+                    value={adminKeyInput}
+                    onChange={(e) => setAdminKeyInput(e.target.value)}
+                    placeholder="Enter admin key"
+                    autoComplete="current-password"
+                    required
+                    style={{ marginBottom: "12px" }}
+                  />
+
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={dashboardLoading}
+                  >
+                    {dashboardLoading ? "Checking key..." : "Unlock dashboard"}
+                  </button>
+                </form>
+              </div>
+
+
 
               <div className="dashboard-stats">
                 <div className="info-card">
