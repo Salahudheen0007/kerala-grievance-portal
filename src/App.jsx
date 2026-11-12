@@ -6,7 +6,8 @@ import {
   CheckCircle2, Clock3, Users, MessageSquareText
 } from "lucide-react";
 import "./App.css";
-
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const departments = [
   { name: "Local Self Government", icon: Building2, desc: "Roads, drainage, sanitation and local civic services." },
   { name: "Health Services", icon: HeartPulse, desc: "Public hospitals, healthcare facilities and medical services." },
@@ -38,7 +39,7 @@ function App() {
     setDashboardError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/grievances", {
+      const response = await fetch(`${API_BASE_URL}/api/grievances`, {
         headers: {
           "X-Admin-Key": key,
         },
@@ -68,7 +69,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/grievances/${encodeURIComponent(referenceId)}/status`,
+        `${API_BASE_URL}/api/grievances/${encodeURIComponent(referenceId)}/status`,
         {
           method: "PATCH",
           headers: {
@@ -108,7 +109,7 @@ function App() {
     e.preventDefault();
     setMessage("Submitting grievance...");
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/grievances", {
+      const response = await fetch(`${API_BASE_URL}/api/grievances`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(grievance),
@@ -132,7 +133,7 @@ function App() {
   setMessage("AI is analyzing your grievance...");
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/ai/analyze", {
+    const response = await fetch(`${API_BASE_URL}/api/ai/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -177,7 +178,7 @@ function App() {
     setMessage("Searching...");
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/grievances/${encodeURIComponent(reference)}`
+        `${API_BASE_URL}/api/grievances/${encodeURIComponent(reference)}`
       );
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Reference not found");
