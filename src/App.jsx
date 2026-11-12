@@ -228,7 +228,7 @@ function App() {
               loadGrievances();
             }}
           >
-            Admin Demo
+            Admin Portal
           </button>
         </div>
       </header>
